@@ -1,0 +1,461 @@
+
+<style>
+:root {
+  --accent: #1D9E75;
+  --accent2: #0F6E56;
+  --warn: #BA7517;
+  --danger: #A32D2D;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#app { padding: 1rem 0; }
+.tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.tab { padding: 8px 16px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; font-size: 14px; color: var(--color-text-secondary); }
+.tab.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 500; }
+.tab:hover:not(.active) { background: var(--color-background-secondary); }
+.section { display: none; }
+.section.active { display: block; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
+.field label { font-size: 12px; color: var(--color-text-secondary); }
+.field input, .field select { width: 100%; padding: 6px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); font-size: 14px; }
+.btn { padding: 8px 18px; border-radius: var(--border-radius-md); border: none; cursor: pointer; font-size: 14px; font-weight: 500; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-danger { background: transparent; color: var(--danger); border: 0.5px solid var(--danger); }
+.btn-danger:hover { background: #FCEBEB; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.stat-value { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.stat-value.green { color: var(--accent); }
+.list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; flex-wrap: wrap; gap: 6px; }
+.list-item:last-child { border-bottom: none; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+.badge-late { background: #FAEEDA; color: #854F0B; }
+.badge-holiday { background: #FAECE7; color: #993C1D; }
+.badge-night { background: #EEEDFE; color: #3C3489; }
+.tag-row { display: flex; gap: 4px; flex-wrap: wrap; }
+h2 { font-size: 16px; font-weight: 500; margin-bottom: 1rem; color: var(--color-text-primary); }
+h3 { font-size: 14px; font-weight: 500; margin-bottom: 0.75rem; color: var(--color-text-secondary); }
+.member-select { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+.member-btn { padding: 6px 14px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; cursor: pointer; font-size: 13px; color: var(--color-text-secondary); }
+.member-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.period-label { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+.empty { text-align: center; padding: 2rem; color: var(--color-text-tertiary); font-size: 14px; }
+.annual-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; align-items: center; }
+.annual-header { font-weight: 500; color: var(--color-text-secondary); font-size: 12px; }
+.alert { background: #E1F5EE; border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: #0F6E56; margin-bottom: 1rem; }
+</style>
+
+<div id="app">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('checkin')">出退勤入力</button>
+    <button class="tab" onclick="showTab('monthly')">月次集計</button>
+    <button class="tab" onclick="showTab('annual')">年次レポート</button>
+    <button class="tab" onclick="showTab('settings')">設定</button>
+  </div>
+
+  <!-- 出退勤入力 -->
+  <div id="checkin" class="section active">
+    <h2>出退勤を記録する</h2>
+    <div class="card">
+      <div class="row" style="margin-bottom:12px;">
+        <div class="field">
+          <label>スタッフ名</label>
+          <select id="ci-staff"></select>
+        </div>
+        <div class="field">
+          <label>日付</label>
+          <input type="date" id="ci-date" />
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:12px;">
+        <div class="field">
+          <label>出勤時間</label>
+          <input type="time" id="ci-in" />
+        </div>
+        <div class="field">
+          <label>退勤時間</label>
+          <input type="time" id="ci-out" />
+        </div>
+        <div class="field">
+          <label>交通費</label>
+          <select id="ci-transport">
+            <option value="500">あり（500円）</option>
+            <option value="0">なし</option>
+          </select>
+        </div>
+      </div>
+      <div id="ci-preview" style="margin-bottom:12px; display:none;"></div>
+      <div class="row">
+        <button class="btn btn-primary" onclick="calcPreview()">計算確認</button>
+        <button class="btn btn-primary" onclick="addRecord()">記録する</button>
+      </div>
+    </div>
+
+    <h2>最近の記録</h2>
+    <div class="card" id="recent-list"><div class="empty">まだ記録がありません</div></div>
+  </div>
+
+  <!-- 月次集計 -->
+  <div id="monthly" class="section">
+    <h2>月次集計</h2>
+    <div class="row" style="margin-bottom:1rem;">
+      <div class="field" style="max-width:200px;">
+        <label>対象月（起算：21日〜20日）</label>
+        <select id="month-sel" onchange="renderMonthly()"></select>
+      </div>
+    </div>
+    <div class="member-select" id="monthly-members"></div>
+    <div id="monthly-content"></div>
+  </div>
+
+  <!-- 年次レポート -->
+  <div id="annual" class="section">
+    <h2>年次レポート（過去12ヶ月）</h2>
+    <div class="member-select" id="annual-members"></div>
+    <div id="annual-content"></div>
+  </div>
+
+  <!-- 設定 -->
+  <div id="settings" class="section">
+    <h2>スタッフ管理</h2>
+    <div class="card">
+      <div class="row" style="margin-bottom:12px;">
+        <div class="field">
+          <label>スタッフ名</label>
+          <input type="text" id="st-name" placeholder="例：田中花子" />
+        </div>
+        <div class="field">
+          <label>基本時給（円）</label>
+          <input type="number" id="st-wage" placeholder="1100" value="1100" />
+        </div>
+        <button class="btn btn-primary" onclick="addStaff()">追加</button>
+      </div>
+    </div>
+    <div class="card" id="staff-list"><div class="empty">スタッフを追加してください</div></div>
+
+    <h2 style="margin-top:1.5rem;">給与ルール（参考）</h2>
+    <div class="card">
+      <div class="list-item"><span>金曜・土曜・祝前日割増</span><span style="color:var(--accent);font-weight:500;">+50円/時間</span></div>
+      <div class="list-item"><span>深夜手当（22時以降）</span><span style="color:var(--accent);font-weight:500;">+25%（×1.25）</span></div>
+      <div class="list-item"><span>交通費</span><span style="color:var(--accent);font-weight:500;">500円/日（選択制）</span></div>
+      <div class="list-item"><span>締め日</span><span style="color:var(--accent);font-weight:500;">毎月21日〜翌月20日</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const HOLIDAYS_2024_2025 = [
+  "2024-01-01","2024-01-08","2024-02-11","2024-02-12","2024-03-20",
+  "2024-04-29","2024-05-03","2024-05-04","2024-05-05","2024-05-06",
+  "2024-07-15","2024-08-11","2024-08-12","2024-09-16","2024-09-22","2024-09-23",
+  "2024-10-14","2024-11-03","2024-11-04","2024-11-23","2024-12-31",
+  "2025-01-01","2025-01-13","2025-02-11","2025-02-23","2025-02-24",
+  "2025-03-20","2025-04-29","2025-05-03","2025-05-04","2025-05-05","2025-05-06",
+  "2025-07-21","2025-08-11","2025-09-15","2025-09-22","2025-09-23",
+  "2025-10-13","2025-11-03","2025-11-23","2025-11-24",
+  "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20",
+  "2026-04-29","2026-05-03","2026-05-04","2026-05-05","2026-05-06"
+];
+
+let staffList = JSON.parse(localStorage.getItem('staff') || '[]');
+let records = JSON.parse(localStorage.getItem('records') || '[]');
+
+function save() {
+  localStorage.setItem('staff', JSON.stringify(staffList));
+  localStorage.setItem('records', JSON.stringify(records));
+}
+
+function isHoliday(dateStr) { return HOLIDAYS_2024_2025.includes(dateStr); }
+function isDayBeforeHoliday(dateStr) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + 1);
+  return isHoliday(d.toISOString().slice(0,10));
+}
+function isSpecialDay(dateStr) {
+  const d = new Date(dateStr);
+  const dow = d.getDay();
+  return dow === 5 || dow === 6 || isDayBeforeHoliday(dateStr);
+}
+function toMins(t) {
+  const [h,m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+function calcPay(dateStr, inTime, outTime, wage, transport) {
+  let inM = toMins(inTime);
+  let outM = toMins(outTime);
+  if (outM <= inM) outM += 24 * 60;
+  const special = isSpecialDay(dateStr);
+  const effectiveWage = wage + (special ? 50 : 0);
+  const nightStart = 22 * 60;
+  const nightEnd = outM;
+  let normalMins = 0, nightMins = 0;
+  if (outM <= nightStart) {
+    normalMins = outM - inM;
+  } else if (inM >= nightStart) {
+    nightMins = outM - inM;
+  } else {
+    normalMins = nightStart - inM;
+    nightMins = outM - nightStart;
+  }
+  const normalPay = (normalMins / 60) * effectiveWage;
+  const nightPay = (nightMins / 60) * effectiveWage * 1.25;
+  const totalPay = Math.round(normalPay + nightPay) + (transport || 0);
+  const totalHours = (outM - inM) / 60;
+  return { totalPay, totalHours: Math.round(totalHours * 100) / 100, normalMins, nightMins, special, effectiveWage };
+}
+
+function getPeriodKey(dateStr) {
+  const d = new Date(dateStr);
+  const day = d.getDate();
+  let year = d.getFullYear(), month = d.getMonth();
+  if (day <= 20) { /* 1日〜20日 → 前月21日起算 */ month -= 1; if (month < 0) { month = 11; year -= 1; } }
+  return `${year}-${String(month+1).padStart(2,'0')}`;
+}
+
+function getPeriodLabel(key) {
+  const [y, m] = key.split('-').map(Number);
+  let nextM = m + 1, nextY = y;
+  if (nextM > 12) { nextM = 1; nextY++; }
+  return `${y}年${m}月21日 〜 ${nextY}年${nextM}月20日`;
+}
+
+function addStaff() {
+  const name = document.getElementById('st-name').value.trim();
+  const wage = parseInt(document.getElementById('st-wage').value);
+  if (!name || !wage) return alert('名前と時給を入力してください');
+  if (staffList.find(s => s.name === name)) return alert('同じ名前のスタッフが存在します');
+  staffList.push({ name, wage, id: Date.now() });
+  save(); renderAll();
+  document.getElementById('st-name').value = '';
+}
+
+function removeStaff(id) {
+  if (!confirm('削除しますか？')) return;
+  staffList = staffList.filter(s => s.id !== id);
+  save(); renderAll();
+}
+
+function renderStaffList() {
+  const el = document.getElementById('staff-list');
+  if (!staffList.length) { el.innerHTML = '<div class="empty">スタッフを追加してください</div>'; return; }
+  el.innerHTML = staffList.map(s => `
+    <div class="list-item">
+      <span style="font-weight:500;">${s.name}</span>
+      <span style="color:var(--color-text-secondary);">時給 ${s.wage.toLocaleString()}円</span>
+      <button class="btn btn-danger" style="padding:4px 10px;font-size:12px;" onclick="removeStaff(${s.id})">削除</button>
+    </div>`).join('');
+}
+
+function renderStaffSelect() {
+  const el = document.getElementById('ci-staff');
+  el.innerHTML = staffList.length ? staffList.map(s => `<option value="${s.id}">${s.name}</option>`).join('') : '<option value="">（スタッフなし）</option>';
+}
+
+function calcPreview() {
+  const staffId = parseInt(document.getElementById('ci-staff').value);
+  const staff = staffList.find(s => s.id === staffId);
+  const date = document.getElementById('ci-date').value;
+  const inT = document.getElementById('ci-in').value;
+  const outT = document.getElementById('ci-out').value;
+  const transport = parseInt(document.getElementById('ci-transport').value);
+  const prev = document.getElementById('ci-preview');
+  if (!staff || !date || !inT || !outT) { prev.style.display='none'; return; }
+  const r = calcPay(date, inT, outT, staff.wage, transport);
+  const tags = [];
+  if (r.special) tags.push('<span class="badge badge-holiday">割増+50円</span>');
+  if (r.nightMins > 0) tags.push(`<span class="badge badge-night">深夜${Math.round(r.nightMins)}分</span>`);
+  if (transport > 0) tags.push('<span class="badge badge-late">交通費500円</span>');
+  prev.style.display = 'block';
+  prev.innerHTML = `<div class="alert">
+    <strong>計算プレビュー</strong>：労働時間 ${r.totalHours}時間　/　実効時給 ${r.effectiveWage}円　/　合計 <strong>${r.totalPay.toLocaleString()}円</strong>
+    <div class="tag-row" style="margin-top:6px;">${tags.join('')}</div>
+  </div>`;
+}
+
+function addRecord() {
+  const staffId = parseInt(document.getElementById('ci-staff').value);
+  const staff = staffList.find(s => s.id === staffId);
+  const date = document.getElementById('ci-date').value;
+  const inT = document.getElementById('ci-in').value;
+  const outT = document.getElementById('ci-out').value;
+  const transport = parseInt(document.getElementById('ci-transport').value);
+  if (!staff || !date || !inT || !outT) return alert('すべての項目を入力してください');
+  const r = calcPay(date, inT, outT, staff.wage, transport);
+  records.push({ staffId, date, inT, outT, transport, ...r, id: Date.now() });
+  save(); renderAll();
+  document.getElementById('ci-preview').style.display = 'none';
+  alert(`記録しました！　合計: ${r.totalPay.toLocaleString()}円`);
+}
+
+function removeRecord(id) {
+  if (!confirm('この記録を削除しますか？')) return;
+  records = records.filter(r => r.id !== id);
+  save(); renderAll();
+}
+
+function renderRecent() {
+  const el = document.getElementById('recent-list');
+  const recent = [...records].sort((a,b) => b.date.localeCompare(a.date)).slice(0,10);
+  if (!recent.length) { el.innerHTML = '<div class="empty">まだ記録がありません</div>'; return; }
+  el.innerHTML = recent.map(r => {
+    const staff = staffList.find(s => s.id === r.staffId);
+    const tags = [];
+    if (r.special) tags.push('<span class="badge badge-holiday">割増</span>');
+    if (r.nightMins > 0) tags.push('<span class="badge badge-night">深夜</span>');
+    return `<div class="list-item">
+      <div>
+        <span style="font-weight:500;">${staff ? staff.name : '不明'}</span>
+        <span style="color:var(--color-text-secondary); margin-left:8px; font-size:12px;">${r.date}　${r.inT}〜${r.outT}</span>
+        <div class="tag-row" style="margin-top:4px;">${tags.join('')}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-weight:500; color:var(--accent);">${r.totalPay.toLocaleString()}円</div>
+        <div style="font-size:12px; color:var(--color-text-secondary);">${r.totalHours}h</div>
+        <button class="btn btn-danger" style="padding:2px 8px;font-size:11px;margin-top:4px;" onclick="removeRecord(${r.id})">削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildMonthOptions() {
+  const sel = document.getElementById('month-sel');
+  const keys = new Set(records.map(r => getPeriodKey(r.date)));
+  const now = new Date();
+  const curKey = getPeriodKey(now.toISOString().slice(0,10));
+  keys.add(curKey);
+  const sorted = [...keys].sort().reverse();
+  sel.innerHTML = sorted.map(k => `<option value="${k}">${getPeriodLabel(k)}</option>`).join('');
+}
+
+function renderMonthly() {
+  const key = document.getElementById('month-sel').value;
+  const memberDiv = document.getElementById('monthly-members');
+  const content = document.getElementById('monthly-content');
+  if (!staffList.length) { memberDiv.innerHTML=''; content.innerHTML='<div class="empty">スタッフが登録されていません</div>'; return; }
+  
+  const recs = records.filter(r => getPeriodKey(r.date) === key);
+  
+  memberDiv.innerHTML = staffList.map((s,i) => {
+    const active = !window._monthlyStaff || window._monthlyStaff === s.id;
+    return `<button class="member-btn ${i===0 && !window._monthlyStaff ? 'active' : (window._monthlyStaff===s.id?'active':'')}" onclick="selectMonthlyStaff(${s.id})">${s.name}</button>`;
+  }).join('');
+
+  if (!window._monthlyStaff) window._monthlyStaff = staffList[0]?.id;
+  document.querySelectorAll('#monthly-members .member-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = [...document.querySelectorAll('#monthly-members .member-btn')].find(b => b.onclick.toString().includes(window._monthlyStaff));
+  if (activeBtn) activeBtn.classList.add('active');
+
+  const staff = staffList.find(s => s.id === window._monthlyStaff);
+  if (!staff) return;
+  const staffRecs = recs.filter(r => r.staffId === staff.id).sort((a,b)=>a.date.localeCompare(b.date));
+  const totalPay = staffRecs.reduce((s,r)=>s+r.totalPay,0);
+  const totalHours = Math.round(staffRecs.reduce((s,r)=>s+r.totalHours,0)*100)/100;
+  const totalDays = staffRecs.length;
+  const totalTransport = staffRecs.reduce((s,r)=>s+(r.transport||0),0);
+
+  content.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">出勤日数</div><div class="stat-value">${totalDays}日</div></div>
+      <div class="stat"><div class="stat-label">総労働時間</div><div class="stat-value">${totalHours}h</div></div>
+      <div class="stat"><div class="stat-label">交通費合計</div><div class="stat-value">${totalTransport.toLocaleString()}円</div></div>
+      <div class="stat"><div class="stat-label">アルバイト代合計</div><div class="stat-value green">${totalPay.toLocaleString()}円</div></div>
+    </div>
+    <div class="card">
+      ${staffRecs.length ? staffRecs.map(r=>{
+        const tags=[];
+        if(r.special) tags.push('<span class="badge badge-holiday">割増</span>');
+        if(r.nightMins>0) tags.push('<span class="badge badge-night">深夜</span>');
+        if(r.transport>0) tags.push('<span class="badge badge-late">交通費</span>');
+        return `<div class="list-item">
+          <div><div style="font-weight:500;">${r.date}</div><div style="font-size:12px; color:var(--color-text-secondary);">${r.inT}〜${r.outT}（${r.totalHours}h）</div><div class="tag-row" style="margin-top:3px;">${tags.join('')}</div></div>
+          <div style="font-weight:500; color:var(--accent);">${r.totalPay.toLocaleString()}円</div>
+        </div>`;
+      }).join('') : '<div class="empty">この期間の記録がありません</div>'}
+    </div>`;
+}
+
+function selectMonthlyStaff(id) {
+  window._monthlyStaff = id;
+  renderMonthly();
+}
+
+function renderAnnual() {
+  const memberDiv = document.getElementById('annual-members');
+  const content = document.getElementById('annual-content');
+  if (!staffList.length) { memberDiv.innerHTML=''; content.innerHTML='<div class="empty">スタッフが登録されていません</div>'; return; }
+
+  if (!window._annualStaff) window._annualStaff = staffList[0]?.id;
+  memberDiv.innerHTML = staffList.map(s =>
+    `<button class="member-btn ${window._annualStaff===s.id?'active':''}" onclick="selectAnnualStaff(${s.id})">${s.name}</button>`
+  ).join('');
+
+  const staff = staffList.find(s => s.id === window._annualStaff);
+  if (!staff) return;
+
+  const now = new Date();
+  const months = [];
+  for (let i=11; i>=0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  }
+
+  let totalAnnual = 0, totalDays = 0, totalHours = 0;
+  const rows = months.map(key => {
+    const recs = records.filter(r => r.staffId === staff.id && getPeriodKey(r.date) === key);
+    const pay = recs.reduce((s,r)=>s+r.totalPay,0);
+    const days = recs.length;
+    const hours = Math.round(recs.reduce((s,r)=>s+r.totalHours,0)*100)/100;
+    totalAnnual += pay; totalDays += days; totalHours += hours;
+    const [y,m] = key.split('-');
+    return `<div class="annual-row">
+      <span>${y}年${m}月</span>
+      <span style="color:var(--color-text-secondary);">${days}日 / ${hours}h</span>
+      <span style="color:var(--accent); font-weight:500;">${pay.toLocaleString()}円</span>
+      <span style="font-size:11px; color:var(--color-text-tertiary);">${getPeriodLabel(key).replace('〜','\n〜')}</span>
+    </div>`;
+  });
+
+  content.innerHTML = `
+    <div class="stat-grid" style="margin-bottom:1rem;">
+      <div class="stat"><div class="stat-label">年間出勤日数</div><div class="stat-value">${totalDays}日</div></div>
+      <div class="stat"><div class="stat-label">年間労働時間</div><div class="stat-value">${Math.round(totalHours*100)/100}h</div></div>
+      <div class="stat"><div class="stat-label">年間アルバイト代</div><div class="stat-value green">${totalAnnual.toLocaleString()}円</div></div>
+    </div>
+    <div class="card">
+      <div class="annual-row annual-header"><span>期間</span><span>日数 / 時間</span><span>給与</span><span>締め日</span></div>
+      ${rows.join('')}
+    </div>`;
+}
+
+function selectAnnualStaff(id) {
+  window._annualStaff = id;
+  renderAnnual();
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(name).classList.add('active');
+  if (name === 'monthly') { buildMonthOptions(); renderMonthly(); }
+  if (name === 'annual') renderAnnual();
+}
+
+function renderAll() {
+  renderStaffList();
+  renderStaffSelect();
+  renderRecent();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('ci-date').value = today;
+  renderAll();
+});
+renderAll();
+document.getElementById('ci-date').value = new Date().toISOString().slice(0,10);
+</script>
